@@ -11,7 +11,7 @@ Automate the integration of profile and publication data for the Innovation Cent
 
 ---
 
-## 🔑 Key functionalities (high level)
+## 🔑 Key functionalities
 - Query Google Scholar (via SerpApi) for a researcher’s publications, citations, and profile metadata.
 - Map scholar JSON results to the institution DB schema.
 - Extract data and stage it in-memory (Java), then export to integration-ready payloads.
@@ -19,7 +19,7 @@ Automate the integration of profile and publication data for the Innovation Cent
 
 ---
 
-## ❗ Why this matters (project relevance)
+## ❗ Why this matters
 - Automates complex processes of browsing
 - Eliminates repeated manual data entry and human error.
 - Makes it easy to audit and trace changes (Git history + documentation).
