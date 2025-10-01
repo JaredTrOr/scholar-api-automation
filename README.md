@@ -7,7 +7,7 @@
 ---
 
 ## 🎯 Project purpose
-Automate the integration of profile and publication data for the Innovation Center's into the institution's research database using Google Scholar (via SerpApi). The automation replaces manual collection and entry, improves data freshness and reproducibility, and centralizes documentation and version control on GitHub.
+Automate the integration of profile and publication data for the Innovation Center's into the institution's research database using Google Scholar (via SerpApi). The automation replaces manual collection and entry, improves data freshness and centralizes documentation and version control on GitHub.
 
 ---
 
