@@ -1,0 +1,10 @@
+{
+  "author_profile": {
+    "engine": "google_scholar_author",
+    "restrictions": "{author, articles, serpapi_pagination}"
+  },
+  "author_articles": {
+    "engine": "google_scholar",
+    "restrictions": "{search_metadata, search_information, profiles.authors, organic_results, serpapi_pagination}"
+  }
+}
