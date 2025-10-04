@@ -1,0 +1,119 @@
+/* --- src/main/resources/styles/browser-styles.css --- */
+
+/* --- GENERAL & ROOT STYLES --- */
+.root {
+    -fx-background-color: #1e1e1e; /* Dark background */
+    -fx-font-family: "Segoe UI", Arial, sans-serif;
+}
+
+#mainTitle {
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #e0e0e0; /* Light grey text */
+}
+
+.label {
+    -fx-text-fill: #cccccc; /* Lighter text for general labels */
+}
+
+/* --- SEARCH BAR & CONTROLS --- */
+.text-field {
+    -fx-background-color: #2a2a2a;
+    -fx-text-fill: #e0e0e0;
+    -fx-border-color: #444444;
+    -fx-border-radius: 5;
+    -fx-background-radius: 5;
+    -fx-font-size: 14px;
+}
+
+.button {
+    -fx-background-color: #007acc; /* Accent color */
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-background-radius: 5;
+    -fx-cursor: hand;
+}
+
+.button:hover {
+    -fx-background-color: #005f9e;
+}
+
+/* --- RESULTS AREA & SCROLL PANE --- */
+.scroll-pane {
+    -fx-background-color: transparent;
+    -fx-background: transparent;
+}
+
+.scroll-pane .viewport {
+    -fx-background-color: transparent;
+}
+
+/* --- SECTION TITLES --- */
+.section-title {
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #e0e0e0;
+    -fx-padding: 10 0 5 0;
+}
+
+/* --- HORIZONTAL PROFILE CARDS --- */
+.profile-card {
+    -fx-background-color: #2a2a2a;
+    -fx-padding: 15;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-min-width: 250px; /* Give profiles a fixed width */
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.4), 10, 0.5, 0, 2);
+}
+
+/* --- VERTICAL ARTICLE CARDS --- */
+.article-card {
+    -fx-background-color: #2a2a2a;
+    -fx-padding: 15;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-border-width: 1;
+    -fx-border-color: #333333;
+}
+
+.card-title {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #0099ff; /* A lighter blue for titles */
+}
+
+.card-snippet {
+    -fx-text-fill: #bbbbbb;
+    -fx-wrap-text: true;
+}
+
+.card-author-heading {
+    -fx-font-weight: bold;
+    -fx-text-fill: #cccccc;
+    -fx-padding: 5 0 0 0;
+}
+
+.hyperlink {
+    -fx-text-fill: #0099ff;
+    -fx-border-color: transparent;
+}
+
+.hyperlink:visited {
+    -fx-text-fill: #8b58c2;
+}
+
+
+/* --- CUSTOM SCROLLBAR FOR DARK THEME --- */
+.scroll-bar:horizontal, .scroll-bar:vertical {
+    -fx-background-color: transparent;
+}
+
+.scroll-bar .thumb {
+    -fx-background-color: #555555;
+    -fx-background-radius: 5;
+}
+
+.scroll-bar .track {
+    -fx-background-color: #2a2a2a;
+    -fx-background-radius: 5;
+}
