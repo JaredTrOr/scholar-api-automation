@@ -1,7 +1,5 @@
-package org.jared.trujillo.classes;
+package org.jared.trujillo.models;
 
-import org.jared.trujillo.models.OrganicResults;
-import org.jared.trujillo.models.Pagination;
 import org.jared.trujillo.models.authors.Author;
 
 import java.util.List;
