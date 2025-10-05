@@ -5,18 +5,12 @@ import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
-import javafx.scene.control.Button;
-import javafx.scene.control.Hyperlink;
-import javafx.scene.control.Label;
-import javafx.scene.control.ProgressIndicator;
-import javafx.scene.control.ScrollPane; // Import ScrollPane
+import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority; // Import Priority
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import org.jared.trujillo.classes.types.scholar_data.ScholarAuthor;
+import org.jared.trujillo.controllers.ArticleController;
 import org.jared.trujillo.controllers.AuthorController;
 import org.jared.trujillo.models.Article;
 import org.jared.trujillo.models.author.Author;
@@ -24,16 +18,20 @@ import org.jared.trujillo.models.author.DetailedAuthor;
 import org.jared.trujillo.utils.ApiUrlBuilder;
 import org.jared.trujillo.utils.JacksonHandler;
 
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public class AuthorDetailView extends BorderPane {
 
     private final VBox contentArea;
-    private final AuthorController authorController;
     private final Map<String, Map<String, String>> configFile;
     private final HostServices hostServices;
+
+    private final AuthorController authorController;
+    private final ArticleController articleController;
 
     public AuthorDetailView(
             Author author,
@@ -44,10 +42,10 @@ public class AuthorDetailView extends BorderPane {
         JacksonHandler jsonHandler = new JacksonHandler();
         this.configFile = jsonHandler.getConfigFileApi();
         this.hostServices = hostServices;
-
         this.authorController = authorController;
-        this.setPadding(new Insets(10));
+        this.articleController = new ArticleController();
 
+        this.setPadding(new Insets(10));
         Button backButton = new Button("← Back to Search");
         backButton.setOnAction(_ -> onBack.run());
 
@@ -124,7 +122,7 @@ public class AuthorDetailView extends BorderPane {
         }
         authorHeaderBox.getChildren().add(authorInfoBox);
 
-        VBox articlesSection = createArticlesSection(author.getArticles());
+        VBox articlesSection = this.createArticlesSection(author.getArticles());
 
         ScrollPane articlesScrollPane = new ScrollPane(articlesSection);
         articlesScrollPane.setFitToWidth(true); // Prevents horizontal scrollbar
@@ -152,7 +150,7 @@ public class AuthorDetailView extends BorderPane {
             articlesContainer.getChildren().add(new Label("No articles found for this author."));
         } else {
             for (Article article : articles) {
-                Node articleCard = createArticleCard(article);
+                Node articleCard = this.createArticleCard(article);
                 articlesContainer.getChildren().add(articleCard);
             }
         }
@@ -160,10 +158,7 @@ public class AuthorDetailView extends BorderPane {
     }
 
     private Node createArticleCard(Article article) {
-        VBox card = new VBox(8);
-        card.getStyleClass().add("article-card");
-        card.setPadding(new Insets(10));
-
+        VBox infoBox = new VBox(8);
         Hyperlink titleLink = new Hyperlink(article.getTitle());
         titleLink.setWrapText(true);
         titleLink.setOnAction(_ -> hostServices.showDocument(article.getLink()));
@@ -178,8 +173,90 @@ public class AuthorDetailView extends BorderPane {
         Label citedByLabel = new Label("Cited by: " + article.getCitedBy());
         citedByLabel.getStyleClass().add("card-author-heading");
 
-        card.getChildren().addAll(titleLink, authorsLabel, publicationLabel, citedByLabel);
-        return card;
+        infoBox.getChildren().addAll(titleLink, authorsLabel, publicationLabel, citedByLabel);
+
+        Button insertButton = this.getButton(article);
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        HBox cardLayout = new HBox(10, infoBox, spacer, insertButton);
+        cardLayout.setPadding(new Insets(10));
+        cardLayout.getStyleClass().add("article-card");
+        cardLayout.setAlignment(Pos.CENTER_LEFT);
+
+        return cardLayout;
+    }
+
+    private Button getButton(Article article) {
+        Button insertButton = new Button("Insert into Database");
+
+        insertButton.setOnAction(e -> {
+            Alert confirmationAlert = new Alert(Alert.AlertType.CONFIRMATION);
+            confirmationAlert.setTitle("Confirm Insertion");
+            confirmationAlert.setHeaderText("Add article to the database?");
+            confirmationAlert.setContentText("Are you sure you want to save the article:\n\"" + article.getTitle() + "\"?");
+
+            Optional<ButtonType> result = confirmationAlert.showAndWait();
+
+            if (result.isPresent() && result.get() == ButtonType.OK) {
+                handleInsertArticle(article, insertButton);
+            }
+        });
+        return insertButton;
+    }
+
+    private void handleInsertArticle(Article article, Button button) {
+        // 1. Give immediate feedback that we are starting the process
+        button.setDisable(true);
+        button.setText("Checking...");
+
+        new Thread(() -> {
+            try {
+                // 2. Call the controller to check if the article exists
+                if (this.articleController.articleExists(article)) {
+
+                    // --- ARTICLE IS A DUPLICATE ---
+                    // Notify the user and reset the button
+                    Platform.runLater(() -> {
+                        showAlert(Alert.AlertType.INFORMATION, "Duplicate Article", "This article already exists in the database.");
+                        button.setText("Insert into Database");
+                        button.setDisable(false);
+                    });
+
+                } else {
+
+                    // --- ARTICLE IS NEW, PROCEED WITH INSERTION ---
+                    Platform.runLater(() -> button.setText("Saving..."));
+                    this.articleController.insertArticle(article);
+
+                    // Notify the user of success
+                    Platform.runLater(() -> {
+                        showAlert(Alert.AlertType.INFORMATION, "Success", "The article was successfully saved!");
+                        button.setText("Saved!"); // Keep button disabled
+                    });
+                }
+            } catch (SQLException e) {
+                // 3. Catch any database error from either the check or the insert
+                e.printStackTrace();
+                Platform.runLater(() -> {
+                    showAlert(Alert.AlertType.ERROR, "Database Error", "An error occurred: " + e.getMessage());
+                    button.setText("Insert into Database");
+                    button.setDisable(false);
+                });
+            }
+        }).start();
+    }
+
+    /**
+     * A helper method to create and show alerts, reducing duplicate code.
+     */
+    private void showAlert(Alert.AlertType type, String title, String content) {
+        Alert alert = new Alert(type);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(content);
+        alert.showAndWait();
     }
 
     private static ImageView getImageView(DetailedAuthor author) {
