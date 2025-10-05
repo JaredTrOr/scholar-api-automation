@@ -3,12 +3,15 @@ package org.jared.trujillo.utils;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.jared.trujillo.classes.types.ScholarData;
+import org.jared.trujillo.classes.types.scholar_data.ScholarAuthor;
+import org.jared.trujillo.classes.types.scholar_data.ScholarGeneral;
 import org.jared.trujillo.exceptions.JsonHandlerException;
 import org.jared.trujillo.classes.types.OrganicResults;
 import org.jared.trujillo.classes.types.Pagination;
-import org.jared.trujillo.models.Author;
-import org.jared.trujillo.models.ProfileAuthor;
+import org.jared.trujillo.models.Article;
+import org.jared.trujillo.models.author.Author;
+import org.jared.trujillo.models.author.ProfileAuthor;
+import org.jared.trujillo.models.author.DetailedAuthor;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -23,18 +26,14 @@ public class JacksonHandler {
 
     public JacksonHandler() { }
 
-    public ScholarData parseGoogleScholarResponse(String jsonString) throws JsonHandlerException {
-        // Assuming 'mapper' is an ObjectMapper instance available in your class
-        ObjectMapper mapper = new ObjectMapper();
+    public ScholarGeneral parseScholarGeneralResponse(String jsonString) throws JsonHandlerException {
 
         try {
-            JsonNode jsonNode = mapper.readTree(jsonString);
+            JsonNode jsonNode = this.mapper.readTree(jsonString);
 
-            // --- PROFILE GOOGLE SUGGESTIONS (Corrected) ---
             JsonNode authorsNode = jsonNode.path("profiles").path("authors");
 
             List<Author> profilesAuthorsList = new ArrayList<>();
-            // Safety check: Only loop if the node exists and is an array
             if (!authorsNode.isMissingNode() && authorsNode.isArray()) {
                 for (JsonNode authorNode : authorsNode) {
                     profilesAuthorsList.add(
@@ -49,12 +48,11 @@ public class JacksonHandler {
                 }
             }
 
-            // --- PAGINATION (Already good) ---
             JsonNode serpApiNode = jsonNode.path("serpapi_pagination");
             JsonNode otherPagesNode = serpApiNode.path("other_pages");
             Map<String, String> otherPagesMap = new HashMap<>();
             if (!otherPagesNode.isMissingNode() && otherPagesNode.isObject()) {
-                otherPagesMap = mapper.convertValue(otherPagesNode, new TypeReference<>() {});
+                otherPagesMap = this.mapper.convertValue(otherPagesNode, new TypeReference<>() {});
             }
             Pagination pagination = new Pagination(
                     serpApiNode.path("current").asInt(0),
@@ -62,10 +60,8 @@ public class JacksonHandler {
                     otherPagesMap
             );
 
-            // --- ORGANIC RESULTS (Corrected) ---
             JsonNode organicResultsNode = jsonNode.path("organic_results");
             List<OrganicResults> organicResultsList = new ArrayList<>();
-            // Safety check: Only loop if the node exists and is an array
             if (!organicResultsNode.isMissingNode() && organicResultsNode.isArray()) {
                 for (JsonNode node : organicResultsNode) {
 
@@ -113,12 +109,59 @@ public class JacksonHandler {
                 }
             }
 
-            return new ScholarData(profilesAuthorsList, organicResultsList, pagination);
+            return new ScholarGeneral(pagination, profilesAuthorsList, organicResultsList);
 
         } catch (Exception e) {
-            // It's often better to wrap the original exception for more detailed debugging
-            throw new JsonHandlerException("Failed to parse Google Scholar JSON response: " + e.getMessage(), e);
+            throw new JsonHandlerException("Failed to parse Scholar General JSON response: " + e.getMessage(), e);
         }
+    }
+
+    public ScholarAuthor parseScholarAuthorResponse(String jsonString, String authorId) throws  JsonHandlerException {
+
+        try {
+            JsonNode jsonNode = this.mapper.readTree(jsonString);
+
+            JsonNode authorNode = jsonNode.path("author");
+            JsonNode articlesNode = jsonNode.path("articles");
+            JsonNode serpApiNode = jsonNode.path("serpapi_pagination");
+
+            List<Article> articleList = new ArrayList<>();
+            if (articlesNode != null && articlesNode.isArray()) {
+                for (JsonNode articleNode: articlesNode) {
+                    articleList.add(new Article(
+                            articleNode.path("citation_id").asText(""),
+                            articleNode.path("title").asText(""),
+                            articleNode.path("link").asText(""),
+                            articleNode.path("authors").asText(""),
+                            articleNode.path("publication").asText(""),
+                            articleNode.path("cited_by") != null ? articleNode.path("cited_by").path("value").asInt() : -1
+                    ));
+                }
+            }
+
+            DetailedAuthor author = new DetailedAuthor(
+                    authorId,
+                    authorNode.path("name").asText(""),
+                    authorNode.path("email").asText(""),
+                    authorNode.path("thumbnail").asText(""),
+                    authorNode.path("affiliations").asText(""),
+                    articleList
+            );
+
+            Pagination pagination = new Pagination(
+                    serpApiNode.path("next").asText("")
+            );
+
+            if (serpApiNode.path("previous") != null) {
+                pagination.setPrev(serpApiNode.path("previous").asText(""));
+            }
+
+            return new ScholarAuthor(pagination, author);
+
+        }  catch (Exception e) {
+            throw new JsonHandlerException("Failed to parse Scholar General JSON response: " + e.getMessage(), e);
+        }
+
     }
 
     public Map<String, Map<String, String>> getConfigFileApi() {
