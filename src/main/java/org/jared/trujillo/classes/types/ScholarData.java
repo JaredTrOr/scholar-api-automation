@@ -1,16 +1,16 @@
-package org.jared.trujillo.models;
+package org.jared.trujillo.classes.types;
 
-import org.jared.trujillo.models.authors.Author;
+import org.jared.trujillo.models.Author;
 
 import java.util.List;
 
-public class ParsedGoogleScholarData {
+public class ScholarData {
 
     private final List<Author> profileAuthors;
     private final List<OrganicResults> organicResults;
     private final Pagination pagination;
 
-    public ParsedGoogleScholarData(List<Author> profileAuthors, List<OrganicResults> organicResults, Pagination pagination) {
+    public ScholarData(List<Author> profileAuthors, List<OrganicResults> organicResults, Pagination pagination) {
         this.profileAuthors = profileAuthors;
         this.organicResults = organicResults;
         this.pagination = pagination;

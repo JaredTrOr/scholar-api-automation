@@ -1,6 +1,5 @@
-package org.jared.trujillo.models;
+package org.jared.trujillo.classes.types;
 
-import java.util.List;
 import java.util.Map;
 
 public class Pagination {

@@ -1,10 +1,10 @@
-package org.jared.trujillo.models.authors;
+package org.jared.trujillo.models;
 
-public class ProfilesAuthor extends Author {
+public class ProfileAuthor extends Author {
 
     private int citedBy;
 
-    public ProfilesAuthor(String authorId, String name, String email, String link, int citedBy) {
+    public ProfileAuthor(String authorId, String name, String email, String link, int citedBy) {
         super(authorId, name, email);
         super.setLink(link);
         this.citedBy = citedBy;

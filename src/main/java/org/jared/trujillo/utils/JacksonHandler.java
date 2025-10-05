@@ -1,14 +1,14 @@
-package org.jared.trujillo.handlers;
+package org.jared.trujillo.utils;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.jared.trujillo.models.ParsedGoogleScholarData;
+import org.jared.trujillo.classes.types.ScholarData;
 import org.jared.trujillo.exceptions.JsonHandlerException;
-import org.jared.trujillo.models.OrganicResults;
-import org.jared.trujillo.models.Pagination;
-import org.jared.trujillo.models.authors.Author;
-import org.jared.trujillo.models.authors.ProfilesAuthor;
+import org.jared.trujillo.classes.types.OrganicResults;
+import org.jared.trujillo.classes.types.Pagination;
+import org.jared.trujillo.models.Author;
+import org.jared.trujillo.models.ProfileAuthor;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -23,7 +23,7 @@ public class JacksonHandler {
 
     public JacksonHandler() { }
 
-    public ParsedGoogleScholarData parseGoogleScholarResponse(String jsonString) throws JsonHandlerException {
+    public ScholarData parseGoogleScholarResponse(String jsonString) throws JsonHandlerException {
         // Assuming 'mapper' is an ObjectMapper instance available in your class
         ObjectMapper mapper = new ObjectMapper();
 
@@ -38,7 +38,7 @@ public class JacksonHandler {
             if (!authorsNode.isMissingNode() && authorsNode.isArray()) {
                 for (JsonNode authorNode : authorsNode) {
                     profilesAuthorsList.add(
-                            new ProfilesAuthor(
+                            new ProfileAuthor(
                                     authorNode.path("author_id").asText(""),
                                     authorNode.path("name").asText(""),
                                     authorNode.path("email").asText(""),
@@ -113,7 +113,7 @@ public class JacksonHandler {
                 }
             }
 
-            return new ParsedGoogleScholarData(profilesAuthorsList, organicResultsList, pagination);
+            return new ScholarData(profilesAuthorsList, organicResultsList, pagination);
 
         } catch (Exception e) {
             // It's often better to wrap the original exception for more detailed debugging

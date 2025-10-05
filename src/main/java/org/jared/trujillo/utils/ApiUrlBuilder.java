@@ -1,4 +1,4 @@
-package org.jared.trujillo.handlers;
+package org.jared.trujillo.utils;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;

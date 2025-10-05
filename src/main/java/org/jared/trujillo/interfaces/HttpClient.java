@@ -1,6 +1,6 @@
 package org.jared.trujillo.interfaces;
 
-import org.jared.trujillo.classes.HttpSimpleResponse;
+import org.jared.trujillo.classes.types.HttpSimpleResponse;
 import org.jared.trujillo.exceptions.HttpException;
 
 import java.util.Map;

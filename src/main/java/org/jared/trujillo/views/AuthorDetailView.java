@@ -10,9 +10,9 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import org.jared.trujillo.controllers.AuthorController;
-import org.jared.trujillo.handlers.ApiUrlBuilder;
-import org.jared.trujillo.handlers.JacksonHandler;
-import org.jared.trujillo.models.authors.Author;
+import org.jared.trujillo.utils.ApiUrlBuilder;
+import org.jared.trujillo.utils.JacksonHandler;
+import org.jared.trujillo.models.Author;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -32,6 +32,7 @@ public class AuthorDetailView extends BorderPane {
      * @param onBack A callback function to execute when the back button is pressed.
      */
     public AuthorDetailView(Author author, AuthorController authorController, Runnable onBack) {
+        this.jsonHandler = new JacksonHandler();
         this.configFile = jsonHandler.getConfigFileApi();
 
         this.authorController = authorController;

@@ -1,4 +1,4 @@
-package org.jared.trujillo.classes;
+package org.jared.trujillo.classes.http;
 
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
@@ -9,6 +9,7 @@ import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
+import org.jared.trujillo.classes.types.HttpSimpleResponse;
 import org.jared.trujillo.exceptions.HttpException;
 import org.jared.trujillo.interfaces.HttpClient;
 

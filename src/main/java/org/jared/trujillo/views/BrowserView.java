@@ -10,12 +10,12 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
-import org.jared.trujillo.models.ParsedGoogleScholarData;
+import org.jared.trujillo.classes.types.ScholarData;
 import org.jared.trujillo.controllers.AuthorController;
-import org.jared.trujillo.handlers.ApiUrlBuilder;
-import org.jared.trujillo.handlers.JacksonHandler;
-import org.jared.trujillo.models.OrganicResults;
-import org.jared.trujillo.models.authors.Author;
+import org.jared.trujillo.utils.ApiUrlBuilder;
+import org.jared.trujillo.utils.JacksonHandler;
+import org.jared.trujillo.classes.types.OrganicResults;
+import org.jared.trujillo.models.Author;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -172,7 +172,7 @@ public class BrowserView extends Application {
                 Map<String, String> parameters = new HashMap<>();
                 parameters.put("q", query);
                 String apiUrl = ApiUrlBuilder.buildUrl(ENGINE, RESTRICTIONS, parameters);
-                ParsedGoogleScholarData data = authorController.searchByAuthorAndTopic(apiUrl);
+                ScholarData data = authorController.searchByAuthorAndTopic(apiUrl);
                 Platform.runLater(() -> displayResults(data));
             } catch (Exception e) {
                 e.printStackTrace();
@@ -203,7 +203,7 @@ public class BrowserView extends Application {
                 Map<String, String> parameters = new HashMap<>();
                 parameters.put("q", "author:"+query);
                 String apiUrl = ApiUrlBuilder.buildUrl(ENGINE, RESTRICTIONS, parameters);
-                ParsedGoogleScholarData data = authorController.searchByAuthorAndTopic(apiUrl);
+                ScholarData data = authorController.searchByAuthorAndTopic(apiUrl);
                 Platform.runLater(() -> displayResults(data));
             } catch (Exception e) {
                 e.printStackTrace();
@@ -215,7 +215,7 @@ public class BrowserView extends Application {
         }).start();
     }
 
-    private void displayResults(ParsedGoogleScholarData data) {
+    private void displayResults(ScholarData data) {
         cardsContainer.getChildren().clear();
         boolean hasProfiles = data != null && data.getProfileAuthors() != null && !data.getProfileAuthors().isEmpty();
         boolean hasArticles = data != null && data.getOrganicResults() != null && !data.getOrganicResults().isEmpty();
@@ -231,7 +231,7 @@ public class BrowserView extends Application {
         }
     }
 
-    private Node createProfileSection(ParsedGoogleScholarData data) {
+    private Node createProfileSection(ScholarData data) {
         VBox profileSection = new VBox(10);
         Label profileTitle = new Label("Profiles (Most Relevant)");
         profileTitle.getStyleClass().add("section-title");
@@ -247,7 +247,7 @@ public class BrowserView extends Application {
         return profileSection;
     }
 
-    private Node createArticlesSection(ParsedGoogleScholarData data) {
+    private Node createArticlesSection(ScholarData data) {
         VBox articlesSection = new VBox(10);
         Label articlesTitle = new Label("Articles & Authors");
         articlesTitle.getStyleClass().add("section-title");

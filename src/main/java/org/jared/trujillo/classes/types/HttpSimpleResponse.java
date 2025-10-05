@@ -1,4 +1,4 @@
-package org.jared.trujillo.classes;
+package org.jared.trujillo.classes.types;
 
 import java.util.Map;
 

@@ -1,6 +1,6 @@
-package org.jared.trujillo.models.authors;
+package org.jared.trujillo.models;
 
-public class SearchAuthor extends Author {
+public class SearchedAuthor extends Author {
 
     private String thumbnail;
     private String affilations;
@@ -8,7 +8,7 @@ public class SearchAuthor extends Author {
     // articles
 
 
-    public SearchAuthor(String authorId, String name, String email, String thumbnail, String affilations) {
+    public SearchedAuthor(String authorId, String name, String email, String thumbnail, String affilations) {
         super(authorId, name, email);
         this.thumbnail = thumbnail;
         this.affilations = affilations;

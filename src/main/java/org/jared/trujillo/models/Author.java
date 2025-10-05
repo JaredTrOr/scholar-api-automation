@@ -1,4 +1,4 @@
-package org.jared.trujillo.models.authors;
+package org.jared.trujillo.models;
 
 public class Author {
 
