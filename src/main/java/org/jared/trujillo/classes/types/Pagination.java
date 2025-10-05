@@ -6,6 +6,7 @@ public class Pagination {
 
     private int current;
     private String next;
+    private String prev;
     private Map<String, String> otherPages;
 
     public Pagination(int current, String next, Map<String, String> otherPages) {
@@ -14,15 +15,29 @@ public class Pagination {
         this.otherPages = otherPages;
     }
 
+    public Pagination(String next) {
+        this.next = next;
+    }
+
     public int getCurrent() {
-        return current;
+        return this.current;
     }
 
     public String getNext() {
-        return next;
+        return this.next;
     }
 
     public Map<String, String> getOtherPages() {
-        return otherPages;
+        return this.otherPages;
     }
+
+    public void setNext(String next) {
+        this.next = next;
+    }
+
+    public void setPrev(String prev) {
+        this.prev = prev;
+    }
+
+    public String getPrev() { return this.prev; }
 }
