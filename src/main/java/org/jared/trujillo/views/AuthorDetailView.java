@@ -1,50 +1,57 @@
 package org.jared.trujillo.views;
 
+import javafx.application.HostServices;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
+import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressIndicator;
+import javafx.scene.control.ScrollPane; // Import ScrollPane
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority; // Import Priority
 import javafx.scene.layout.VBox;
+import org.jared.trujillo.classes.types.scholar_data.ScholarAuthor;
 import org.jared.trujillo.controllers.AuthorController;
+import org.jared.trujillo.models.Article;
+import org.jared.trujillo.models.author.Author;
+import org.jared.trujillo.models.author.DetailedAuthor;
 import org.jared.trujillo.utils.ApiUrlBuilder;
 import org.jared.trujillo.utils.JacksonHandler;
-import org.jared.trujillo.models.Author;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
-// This class is a self-contained component for the detail screen.
 public class AuthorDetailView extends BorderPane {
 
-    private VBox contentArea;
-    private AuthorController authorController;
-    private JacksonHandler jsonHandler;
-    private Map<String, Map<String, String>> configFile;
+    private final VBox contentArea;
+    private final AuthorController authorController;
+    private final Map<String, Map<String, String>> configFile;
+    private final HostServices hostServices;
 
-    /**
-     * Constructor for the Author Detail View.
-     * @param author The author whose details are to be displayed.
-     * @param authorController A controller instance to make API calls.
-     * @param onBack A callback function to execute when the back button is pressed.
-     */
-    public AuthorDetailView(Author author, AuthorController authorController, Runnable onBack) {
-        this.jsonHandler = new JacksonHandler();
+    public AuthorDetailView(
+            Author author,
+            AuthorController authorController,
+            Runnable onBack,
+            HostServices hostServices
+    ) {
+        JacksonHandler jsonHandler = new JacksonHandler();
         this.configFile = jsonHandler.getConfigFileApi();
+        this.hostServices = hostServices;
 
         this.authorController = authorController;
         this.setPadding(new Insets(10));
 
         Button backButton = new Button("← Back to Search");
-        backButton.setOnAction(e -> onBack.run()); // Execute the provided back action
+        backButton.setOnAction(_ -> onBack.run());
 
-        Label titleLabel = new Label("Author Details");
-        titleLabel.setId("mainTitle");
-
-        HBox topBar = new HBox(20, backButton, titleLabel);
+        HBox topBar = new HBox(20, backButton);
         topBar.setAlignment(Pos.CENTER_LEFT);
         this.setTop(topBar);
 
@@ -56,56 +63,134 @@ public class AuthorDetailView extends BorderPane {
         fetchAuthorDetails(author);
     }
 
-    /**
-     * Fetches author data in a background thread and updates the UI.
-     * @param author The author to fetch details for.
-     */
+    // HANDLE FETCHED DATA
     private void fetchAuthorDetails(Author author) {
-        // Show loading indicator
         ProgressIndicator progress = new ProgressIndicator();
         contentArea.getChildren().addAll(new Label("Fetching details for " + author.getName() + "..."), progress);
 
         new Thread(() -> {
             try {
-                // This logic is now moved from BrowserView into this dedicated class
+                // API CONSTRUCTIONS
                 final String ENGINE = this.configFile.get("author_profile").get("engine");
                 final String RESTRICTIONS = this.configFile.get("author_profile").get("restrictions");
                 Map<String, String> params = new HashMap<>();
                 params.put("author_id", author.getAuthorId());
-
                 String apiUrl = ApiUrlBuilder.buildUrl(ENGINE, RESTRICTIONS, params);
 
-                // TODO: Implement the real API call in your controller
-                // AuthorDetails details = this.authorController.getAuthorDetails(apiUrl);
+                // TODO: HTTP REQUEST, HANDLE ERROR RESPONSE
+                ScholarAuthor scholarAuthorResponse = this.authorController.searchByAuthorId(apiUrl, author.getAuthorId());
 
-                // --- MOCK DATA FOR DEMONSTRATION ---
-                Thread.sleep(1500);
-                String mockName = author.getName();
-                String mockAffiliation = "University of Advanced Studies";
-                int mockCitations = (int) (Math.random() * 25000 + 500);
-                // --- End Mock Data ---
+                DetailedAuthor detailedAuthor = scholarAuthorResponse.getAuthor();
+                detailedAuthor.setLink(author.getLink());
 
-                Platform.runLater(() -> displayFetchedData(mockName, mockAffiliation, mockCitations));
+                Platform.runLater(() -> displayFetchedData(detailedAuthor));
 
             } catch (Exception e) {
-                e.printStackTrace();
+                System.out.println(e.getMessage());
                 Platform.runLater(() -> showError("Could not load author details."));
             }
         }).start();
     }
 
-    private void displayFetchedData(String name, String affiliation, int citations) {
+    // UI TO DISPLAY FETCHED DATA
+    private void displayFetchedData(DetailedAuthor author) {
         contentArea.getChildren().clear();
         contentArea.setAlignment(Pos.TOP_LEFT);
 
-        Label nameLabel = new Label(name);
+        Label titleLabel = new Label("Author Details");
+        titleLabel.setId("mainTitle");
+
+        ImageView thumbnailView = null;
+        if (author.getThumbnail() != null && !author.getThumbnail().isEmpty()) {
+            try {
+                thumbnailView = getImageView(author);
+            } catch (Exception e) {
+                System.err.println("Error loading thumbnail image: " + e.getMessage());
+            }
+        }
+
+        Label nameLabel = new Label(author.getName());
         nameLabel.getStyleClass().add("section-title");
 
-        Label affiliationLabel = new Label("Affiliation: " + affiliation);
-        Label citationsLabel = new Label("Total Citations: " + citations);
-        // TODO: Add more detailed fields here (h-index, articles, etc.)
+        Label emailLabel = new Label("Email: " + author.getEmail());
+        Label affiliationLabel = new Label("Affiliation: " + author.getAffilations());
+        Hyperlink googleScholarLink = new Hyperlink("View Google Scholar Profile");
+        googleScholarLink.setOnAction(_ -> hostServices.showDocument(author.getLink()));
 
-        contentArea.getChildren().addAll(nameLabel, affiliationLabel, citationsLabel);
+        VBox authorInfoBox = new VBox(10, nameLabel, emailLabel, affiliationLabel, googleScholarLink);
+        HBox authorHeaderBox = new HBox(20);
+        if (thumbnailView != null) {
+            authorHeaderBox.getChildren().add(thumbnailView);
+        }
+        authorHeaderBox.getChildren().add(authorInfoBox);
+
+        VBox articlesSection = createArticlesSection(author.getArticles());
+
+        ScrollPane articlesScrollPane = new ScrollPane(articlesSection);
+        articlesScrollPane.setFitToWidth(true); // Prevents horizontal scrollbar
+        articlesScrollPane.getStyleClass().add("scroll-pane");
+
+        VBox.setVgrow(articlesScrollPane, Priority.ALWAYS);
+
+
+        contentArea.getChildren().addAll(
+                titleLabel,
+                authorHeaderBox,
+                articlesScrollPane
+        );
+    }
+
+    private VBox createArticlesSection(List<Article> articles) {
+        VBox articlesContainer = new VBox(15);
+        articlesContainer.setPadding(new Insets(20, 0, 0, 0));
+
+        Label articlesTitle = new Label("Articles");
+        articlesTitle.getStyleClass().add("section-title");
+        articlesContainer.getChildren().add(articlesTitle);
+
+        if (articles == null || articles.isEmpty()) {
+            articlesContainer.getChildren().add(new Label("No articles found for this author."));
+        } else {
+            for (Article article : articles) {
+                Node articleCard = createArticleCard(article);
+                articlesContainer.getChildren().add(articleCard);
+            }
+        }
+        return articlesContainer;
+    }
+
+    private Node createArticleCard(Article article) {
+        VBox card = new VBox(8);
+        card.getStyleClass().add("article-card");
+        card.setPadding(new Insets(10));
+
+        Hyperlink titleLink = new Hyperlink(article.getTitle());
+        titleLink.setWrapText(true);
+        titleLink.setOnAction(_ -> hostServices.showDocument(article.getLink()));
+        titleLink.getStyleClass().add("card-title");
+
+        Label authorsLabel = new Label(article.getAuthors());
+        authorsLabel.getStyleClass().add("card-snippet");
+
+        Label publicationLabel = new Label(article.getPublication());
+        publicationLabel.getStyleClass().add("card-snippet");
+
+        Label citedByLabel = new Label("Cited by: " + article.getCitedBy());
+        citedByLabel.getStyleClass().add("card-author-heading");
+
+        card.getChildren().addAll(titleLink, authorsLabel, publicationLabel, citedByLabel);
+        return card;
+    }
+
+    private static ImageView getImageView(DetailedAuthor author) {
+        Image thumbnailImage = new Image(author.getThumbnail());
+        ImageView thumbnailView = new ImageView(thumbnailImage);
+        thumbnailView.setFitWidth(100);
+        thumbnailView.setFitHeight(100);
+        thumbnailView.setPreserveRatio(true);
+        thumbnailView.setSmooth(true);
+        thumbnailView.setCache(true);
+        return thumbnailView;
     }
 
     private void showError(String message) {
