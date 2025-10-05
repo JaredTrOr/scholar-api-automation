@@ -1,6 +1,6 @@
 package org.jared.trujillo.classes.types;
 
-import org.jared.trujillo.models.Author;
+import org.jared.trujillo.models.author.Author;
 
 import java.util.List;
 import java.util.Map;

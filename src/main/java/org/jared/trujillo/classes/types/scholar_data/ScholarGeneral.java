@@ -1,19 +1,20 @@
-package org.jared.trujillo.classes.types;
+package org.jared.trujillo.classes.types.scholar_data;
 
-import org.jared.trujillo.models.Author;
+import org.jared.trujillo.classes.types.OrganicResults;
+import org.jared.trujillo.classes.types.Pagination;
+import org.jared.trujillo.models.author.Author;
 
 import java.util.List;
 
-public class ScholarData {
+public class ScholarGeneral extends ScholarData {
 
     private final List<Author> profileAuthors;
     private final List<OrganicResults> organicResults;
-    private final Pagination pagination;
 
-    public ScholarData(List<Author> profileAuthors, List<OrganicResults> organicResults, Pagination pagination) {
+    public ScholarGeneral(Pagination pagination, List<Author> profileAuthors, List<OrganicResults> organicResults) {
+        super(pagination);
         this.profileAuthors = profileAuthors;
         this.organicResults = organicResults;
-        this.pagination = pagination;
     }
 
     // Getters to access the lists
@@ -25,7 +26,4 @@ public class ScholarData {
         return this.organicResults;
     }
 
-    public Pagination getPagination() {
-        return pagination;
-    }
 }

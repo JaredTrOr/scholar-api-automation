@@ -1,4 +1,4 @@
-package org.jared.trujillo.models;
+package org.jared.trujillo.models.author;
 
 public class ProfileAuthor extends Author {
 
