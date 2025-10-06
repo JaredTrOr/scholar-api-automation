@@ -1,7 +1,7 @@
 package org.jared.trujillo;
 
 import javafx.application.Application;
-import org.jared.trujillo.views.BrowserView; // Import your new UI class
+import org.jared.trujillo.views.BrowserView;
 
 public class Main {
     public static void main(String[] args) {
