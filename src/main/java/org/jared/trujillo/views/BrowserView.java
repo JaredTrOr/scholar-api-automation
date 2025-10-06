@@ -10,8 +10,8 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
-
 import org.jared.trujillo.classes.types.scholar_data.ScholarGeneral;
+import org.jared.trujillo.controllers.ArticleController;
 import org.jared.trujillo.controllers.AuthorController;
 import org.jared.trujillo.utils.ApiUrlBuilder;
 import org.jared.trujillo.utils.JacksonHandler;
@@ -27,33 +27,45 @@ public class BrowserView extends Application {
     private TextField searchField;
     private VBox cardsContainer;
     private AuthorController authorController;
+    private ArticleController articleController;
     private JacksonHandler jsonHandler;
     private Map<String, Map<String, String>> configFile;
     private HostServices hostServices;
-    private Scene searchScene;
-    private BorderPane searchRoot;
 
-    // CONSTRUCTOR---------------------------------------------------------------------------------
+    private BorderPane mainLayout;
+    private Node searchView;
+
     @Override
     public void init() {
         this.jsonHandler = new JacksonHandler();
         this.authorController = new AuthorController();
+        this.articleController = new ArticleController(); // CORRECT: Initialize the new controller
         this.configFile = this.jsonHandler.getConfigFileApi();
         this.hostServices = getHostServices();
     }
 
-    // CREATION OF UI ELEMENTS-----------------------------------------------------------------------
     @Override
     public void start(Stage primaryStage) {
         primaryStage.setTitle("Scholar Search Interface");
+        this.mainLayout = new BorderPane();
+        this.searchView = createSearchView();
+        this.mainLayout.setCenter(searchView);
 
-        this.authorController = new AuthorController();
-        this.cardsContainer = new VBox();
+        Scene scene = new Scene(this.mainLayout);
+        String css = Objects.requireNonNull(getClass().getResource("/styles/browser-styles.css")).toExternalForm();
+        scene.getStylesheets().add(css);
+
+        primaryStage.setScene(scene);
+        primaryStage.setMaximized(true);
+        primaryStage.show();
+    }
+
+    private Node createSearchView() {
+        this.cardsContainer = new VBox(10);
         this.searchField = new TextField();
 
-        this.searchRoot = new BorderPane();
-        VBox topContainer = new VBox(10);
-        topContainer.setPadding(new Insets(10, 10, 0, 10));
+        VBox topSearchContainer = new VBox(10);
+        topSearchContainer.setPadding(new Insets(10, 10, 0, 10));
 
         Label mainTitle = new Label("Google Scholar API Search");
         mainTitle.setId("mainTitle");
@@ -61,23 +73,19 @@ public class BrowserView extends Application {
         titleBox.setAlignment(Pos.CENTER);
 
         HBox searchBar = this.createSearchBar();
-        topContainer.getChildren().addAll(titleBox, searchBar);
-        this.searchRoot.setTop(topContainer);
+        topSearchContainer.getChildren().addAll(titleBox, searchBar);
 
         this.cardsContainer.setPadding(new Insets(10));
         this.cardsContainer.setSpacing(10);
         ScrollPane scrollPane = new ScrollPane(this.cardsContainer);
         scrollPane.setFitToWidth(true);
         scrollPane.getStyleClass().add("scroll-pane");
-        this.searchRoot.setCenter(scrollPane);
 
-        this.searchScene = new Scene(this.searchRoot);
-        String css = Objects.requireNonNull(this.getClass().getResource("/styles/browser-styles.css")).toExternalForm();
-        this.searchScene.getStylesheets().add(css);
+        BorderPane searchContent = new BorderPane();
+        searchContent.setTop(topSearchContainer);
+        searchContent.setCenter(scrollPane);
 
-        primaryStage.setScene(this.searchScene);
-        primaryStage.setMaximized(true);
-        primaryStage.show();
+        return searchContent;
     }
 
     private HBox createSearchBar() {
@@ -85,14 +93,114 @@ public class BrowserView extends Application {
         searchBar.setAlignment(Pos.CENTER);
         searchField.setPromptText("Enter author or topic...");
         HBox.setHgrow(searchField, Priority.ALWAYS);
+
         Button authorButton = new Button("By Author");
         Button topicButton = new Button("By Topic");
+        Button savedArticlesButton = new Button("Saved Articles");
+        savedArticlesButton.setId("saved-articles-button");
+
         authorButton.setOnAction(_ -> searchByAuthor(searchField.getText()));
         topicButton.setOnAction(_ -> searchByTopic(searchField.getText()));
-        searchBar.getChildren().addAll(new Label("Search:"), searchField, authorButton, topicButton);
+        savedArticlesButton.setOnAction(_ -> showSavedArticlesView());
+
+        searchBar.getChildren().addAll(new Label("Search:"), searchField, authorButton, topicButton, savedArticlesButton);
         return searchBar;
     }
 
+    private void showSavedArticlesView() {
+        SavedArticlesView savedView = new SavedArticlesView(
+                this.articleController,
+                () -> this.mainLayout.setCenter(searchView),
+                this.hostServices
+        );
+        this.mainLayout.setCenter(savedView);
+    }
+
+    private void showAuthorDetails(Author author) {
+
+        AuthorDetailView detailView = new AuthorDetailView(
+                author,
+                this.authorController,
+                () -> this.mainLayout.setCenter(searchView),
+                this.hostServices
+        );
+        this.mainLayout.setCenter(detailView);
+    }
+
+    private void searchByAuthor(String query) {
+        if (query == null || query.trim().isEmpty()) {
+            cardsContainer.getChildren().clear();
+            cardsContainer.getChildren().add(new Label("Please enter an author to search."));
+            return;
+        }
+        cardsContainer.getChildren().clear();
+        ProgressIndicator progressIndicator = new ProgressIndicator();
+        VBox searchingBox = new VBox(10, new Label("Searching..."), progressIndicator);
+        searchingBox.setAlignment(Pos.CENTER);
+        cardsContainer.getChildren().add(searchingBox);
+        new Thread(() -> {
+            try {
+                configFile = jsonHandler.getConfigFileApi();
+                final String ENGINE = configFile.get("author_articles").get("engine");
+                final String RESTRICTIONS = configFile.get("author_articles").get("restrictions");
+                Map<String, String> parameters = new HashMap<>();
+                parameters.put("q", "author:"+query);
+                String apiUrl = ApiUrlBuilder.buildUrl(ENGINE, RESTRICTIONS, parameters);
+                ScholarGeneral data = authorController.searchByAuthorAndTopic(apiUrl);
+                Platform.runLater(() -> displayResults(data));
+            } catch (Exception e) {
+                System.out.println(e.getMessage());
+                Platform.runLater(() -> {
+                    cardsContainer.getChildren().clear();
+                    cardsContainer.getChildren().add(new Label("Error: Could not fetch data."));
+                });
+            }
+        }).start();
+    }
+    private void searchByTopic(String query) {
+        if (query == null || query.trim().isEmpty()) {
+            cardsContainer.getChildren().clear();
+            cardsContainer.getChildren().add(new Label("Please enter a topic to search."));
+            return;
+        }
+        cardsContainer.getChildren().clear();
+        ProgressIndicator progressIndicator = new ProgressIndicator();
+        VBox searchingBox = new VBox(10, new Label("Searching..."), progressIndicator);
+        searchingBox.setAlignment(Pos.CENTER);
+        cardsContainer.getChildren().add(searchingBox);
+        new Thread(() -> {
+            try {
+                final String ENGINE = this.configFile.get("author_articles").get("engine");
+                final String RESTRICTIONS = this.configFile.get("author_articles").get("restrictions");
+                Map<String, String> parameters = new HashMap<>();
+                parameters.put("q", query);
+                String apiUrl = ApiUrlBuilder.buildUrl(ENGINE, RESTRICTIONS, parameters);
+                ScholarGeneral data = authorController.searchByAuthorAndTopic(apiUrl);
+                Platform.runLater(() -> displayResults(data));
+            } catch (Exception e) {
+                System.out.println(e.getMessage());
+                Platform.runLater(() -> {
+                    cardsContainer.getChildren().clear();
+                    cardsContainer.getChildren().add(new Label("Error: Could not fetch data."));
+                });
+            }
+        }).start();
+    }
+    private void displayResults(ScholarGeneral data) {
+        cardsContainer.getChildren().clear();
+        boolean hasProfiles = data != null && data.getProfileAuthors() != null && !data.getProfileAuthors().isEmpty();
+        boolean hasArticles = data != null && data.getOrganicResults() != null && !data.getOrganicResults().isEmpty();
+        if (!hasProfiles && !hasArticles) {
+            cardsContainer.getChildren().add(new Label("No results found for your query."));
+            return;
+        }
+        if (hasProfiles) {
+            cardsContainer.getChildren().add(createProfileSection(data));
+        }
+        if (hasArticles) {
+            cardsContainer.getChildren().add(createArticlesSection(data));
+        }
+    }
     private Node createProfileSection(ScholarGeneral data) {
         VBox profileSection = new VBox(10);
         Label profileTitle = new Label("Profiles (Most Relevant)");
@@ -108,7 +216,6 @@ public class BrowserView extends Application {
         profileSection.getChildren().addAll(profileTitle, scrollPane);
         return profileSection;
     }
-
     private Node createArticlesSection(ScholarGeneral data) {
         VBox articlesSection = new VBox(10);
         Label articlesTitle = new Label("Articles & Authors");
@@ -118,7 +225,6 @@ public class BrowserView extends Application {
         }
         return articlesSection;
     }
-
     private Node createProfileAuthorCard(Author author) {
         VBox card = new VBox(5);
         card.getStyleClass().add("profile-card");
@@ -133,7 +239,6 @@ public class BrowserView extends Application {
         card.getChildren().addAll(nameLabel, detailsLink);
         return card;
     }
-
     private Node createOrganicResultCard(OrganicResults result) {
         VBox card = new VBox(10);
         card.getStyleClass().add("article-card");
@@ -162,102 +267,5 @@ public class BrowserView extends Application {
             card.getChildren().addAll(authorsHeading, authorsPane);
         }
         return card;
-    }
-
-
-    // MORE OF LOGIC AND API CALLS ----------------------------------------------------------------
-    private void searchByAuthor(String query) {
-        if (query == null || query.trim().isEmpty()) {
-            cardsContainer.getChildren().clear();
-            cardsContainer.getChildren().add(new Label("Please enter an author to search."));
-            return;
-        }
-        cardsContainer.getChildren().clear();
-        ProgressIndicator progressIndicator = new ProgressIndicator();
-        VBox searchingBox = new VBox(10, new Label("Searching..."), progressIndicator);
-        searchingBox.setAlignment(Pos.CENTER);
-        cardsContainer.getChildren().add(searchingBox);
-        new Thread(() -> {
-            try {
-                // BUILD API REQUEST
-                configFile = jsonHandler.getConfigFileApi();
-                final String ENGINE = configFile.get("author_articles").get("engine");
-                final String RESTRICTIONS = configFile.get("author_articles").get("restrictions");
-                Map<String, String> parameters = new HashMap<>();
-                parameters.put("q", "author:"+query);
-                String apiUrl = ApiUrlBuilder.buildUrl(ENGINE, RESTRICTIONS, parameters);
-
-                // API REQUEST
-                ScholarGeneral data = authorController.searchByAuthorAndTopic(apiUrl);
-                Platform.runLater(() -> displayResults(data));
-            } catch (Exception e) {
-                System.out.println(e.getMessage());
-                Platform.runLater(() -> {
-                    cardsContainer.getChildren().clear();
-                    cardsContainer.getChildren().add(new Label("Error: Could not fetch data."));
-                });
-            }
-        }).start();
-    }
-
-    private void searchByTopic(String query) {
-        if (query == null || query.trim().isEmpty()) {
-            cardsContainer.getChildren().clear();
-            cardsContainer.getChildren().add(new Label("Please enter a topic to search."));
-            return;
-        }
-
-        cardsContainer.getChildren().clear();
-        ProgressIndicator progressIndicator = new ProgressIndicator();
-        VBox searchingBox = new VBox(10, new Label("Searching..."), progressIndicator);
-        searchingBox.setAlignment(Pos.CENTER);
-        cardsContainer.getChildren().add(searchingBox);
-
-        new Thread(() -> {
-            try {
-                // SEARCH BY TOPIC URL CREATION
-                final String ENGINE = this.configFile.get("author_articles").get("engine");
-                final String RESTRICTIONS = this.configFile.get("author_articles").get("restrictions");
-                Map<String, String> parameters = new HashMap<>();
-                parameters.put("q", query);
-                String apiUrl = ApiUrlBuilder.buildUrl(ENGINE, RESTRICTIONS, parameters);
-
-                ScholarGeneral data = authorController.searchByAuthorAndTopic(apiUrl);
-                Platform.runLater(() -> displayResults(data));
-            } catch (Exception e) {
-                System.out.println(e.getMessage());
-                Platform.runLater(() -> {
-                    cardsContainer.getChildren().clear();
-                    cardsContainer.getChildren().add(new Label("Error: Could not fetch data."));
-                });
-            }
-        }).start();
-    }
-
-    private void displayResults(ScholarGeneral data) {
-        cardsContainer.getChildren().clear();
-        boolean hasProfiles = data != null && data.getProfileAuthors() != null && !data.getProfileAuthors().isEmpty();
-        boolean hasArticles = data != null && data.getOrganicResults() != null && !data.getOrganicResults().isEmpty();
-        if (!hasProfiles && !hasArticles) {
-            cardsContainer.getChildren().add(new Label("No results found for your query."));
-            return;
-        }
-        if (hasProfiles) {
-            cardsContainer.getChildren().add(createProfileSection(data));
-        }
-        if (hasArticles) {
-            cardsContainer.getChildren().add(createArticlesSection(data));
-        }
-    }
-
-    private void showAuthorDetails(Author author) {
-        AuthorDetailView detailView = new AuthorDetailView(
-                author,
-                this.authorController,
-                () -> this.searchScene.setRoot(searchRoot),
-                this.hostServices
-        );
-
-        this.searchScene.setRoot(detailView);
     }
 }
