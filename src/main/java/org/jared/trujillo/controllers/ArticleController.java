@@ -7,6 +7,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ArticleController {
 
@@ -40,4 +42,38 @@ public class ArticleController {
         }
     }
 
+    public List<Article> getAllSavedArticles() throws SQLException {
+        List<Article> articles = new ArrayList<>();
+        String sql = "SELECT * FROM public.articles ORDER BY id DESC";
+
+        try (Connection conn = DatabaseManager.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql);
+             ResultSet rs = pstmt.executeQuery()) {
+
+            while (rs.next()) {
+                articles.add(new Article(
+                        rs.getString("citationId"),
+                        rs.getString("title"),
+                        rs.getString("link"),
+                        rs.getString("authors"),
+                        rs.getString("publicationDate"),
+                        rs.getInt("citedBy"),
+                        rs.getString("abstract"),
+                        rs.getString("keywords")
+                ));
+            }
+        }
+        return articles;
+    }
+
+    public void deleteArticleById(String citationId) throws SQLException {
+        String sql = "DELETE FROM public.articles WHERE citationId = ?";
+        try (Connection conn = DatabaseManager.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setString(1, citationId);
+
+            pstmt.executeUpdate();
+        }
+    }
 }
