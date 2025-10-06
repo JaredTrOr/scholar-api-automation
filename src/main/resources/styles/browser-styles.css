@@ -1,22 +1,19 @@
-/* --- src/main/resources/styles/browser-styles.css --- */
 
-/* --- GENERAL & ROOT STYLES --- */
 .root {
-    -fx-background-color: #1e1e1e; /* Dark background */
+    -fx-background-color: #1e1e1e;
     -fx-font-family: "Segoe UI", Arial, sans-serif;
 }
 
 #mainTitle {
     -fx-font-size: 24px;
     -fx-font-weight: bold;
-    -fx-text-fill: #e0e0e0; /* Light grey text */
+    -fx-text-fill: #e0e0e0;
 }
 
 .label {
-    -fx-text-fill: #cccccc; /* Lighter text for general labels */
+    -fx-text-fill: #cccccc;
 }
 
-/* --- SEARCH BAR & CONTROLS --- */
 .text-field {
     -fx-background-color: #2a2a2a;
     -fx-text-fill: #e0e0e0;
@@ -27,7 +24,7 @@
 }
 
 .button {
-    -fx-background-color: #007acc; /* Accent color */
+    -fx-background-color: #007acc;
     -fx-text-fill: white;
     -fx-font-weight: bold;
     -fx-background-radius: 5;
@@ -38,7 +35,6 @@
     -fx-background-color: #005f9e;
 }
 
-/* --- RESULTS AREA & SCROLL PANE --- */
 .scroll-pane {
     -fx-background-color: transparent;
     -fx-background: transparent;
@@ -48,7 +44,6 @@
     -fx-background-color: transparent;
 }
 
-/* --- SECTION TITLES --- */
 .section-title {
     -fx-font-size: 18px;
     -fx-font-weight: bold;
@@ -56,17 +51,15 @@
     -fx-padding: 10 0 5 0;
 }
 
-/* --- HORIZONTAL PROFILE CARDS --- */
 .profile-card {
     -fx-background-color: #2a2a2a;
     -fx-padding: 15;
     -fx-border-radius: 8;
     -fx-background-radius: 8;
-    -fx-min-width: 250px; /* Give profiles a fixed width */
+    -fx-min-width: 250px;
     -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.4), 10, 0.5, 0, 2);
 }
 
-/* --- VERTICAL ARTICLE CARDS --- */
 .article-card {
     -fx-background-color: #2a2a2a;
     -fx-padding: 15;
@@ -79,7 +72,7 @@
 .card-title {
     -fx-font-size: 16px;
     -fx-font-weight: bold;
-    -fx-text-fill: #0099ff; /* A lighter blue for titles */
+    -fx-text-fill: #0099ff;
 }
 
 .card-snippet {
@@ -102,8 +95,6 @@
     -fx-text-fill: #8b58c2;
 }
 
-
-/* --- CUSTOM SCROLLBAR FOR DARK THEME --- */
 .scroll-bar:horizontal, .scroll-bar:vertical {
     -fx-background-color: transparent;
 }
@@ -116,4 +107,100 @@
 .scroll-bar .track {
     -fx-background-color: #2a2a2a;
     -fx-background-radius: 5;
+}
+
+#saved-articles-button {
+    -fx-background-color: #4CAF50;
+    -fx-text-fill: white;
+    -fx-font-family: "Segoe UI", sans-serif;
+    -fx-border-radius: 5px;
+    -fx-background-radius: 5px;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow( gaussian , rgba(0,0,0,0.2) , 5,0,0,1 );
+}
+
+
+.table-view {
+    -fx-background-color: #2B2B2B;
+    -fx-base: #2B2B2B;
+    -fx-control-inner-background: #2B2B2B;
+    -fx-table-cell-border-color: transparent;
+    -fx-padding: 0;
+}
+
+.table-view .column-header-background {
+    -fx-background-color: #252525;
+}
+
+.table-view .column-header-background .label {
+    -fx-background-color: transparent;
+    -fx-text-fill: #E0E0E0;
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+    -fx-padding: 10px;
+}
+
+.table-view .column-header {
+    -fx-background-color: transparent;
+    -fx-border-color: #4A4A4A;
+    -fx-border-width: 0 1px 1px 0;
+}
+
+.table-view .filler {
+    -fx-background-color: #252525;
+}
+
+.table-view .table-row-cell {
+    -fx-background-color: #2B2B2B;
+    -fx-border-color: transparent;
+    -fx-padding: 0;
+}
+
+.table-view .table-row-cell:odd {
+    -fx-background-color: #3C3C3C;
+}
+
+.table-view .table-cell {
+    -fx-text-fill: #CCCCCC;
+    -fx-font-size: 13px;
+    -fx-border-color: transparent #4A4A4A transparent transparent;
+    -fx-padding: 8px;
+}
+
+.table-view .table-row-cell:hover {
+    -fx-background-color: #555555;
+    -fx-text-fill: white;
+}
+
+.table-view .table-row-cell:selected {
+    -fx-background-color: #005999;
+}
+
+.table-view .table-row-cell:selected .table-cell {
+    -fx-text-fill: white;
+}
+
+.table-view .scroll-bar:vertical,
+.table-view .scroll-bar:horizontal {
+    -fx-background-color: #2B2B2B;
+}
+
+.table-view .scroll-bar .thumb {
+    -fx-background-color: #555555;
+    -fx-background-insets: 2, 0, 0;
+    -fx-background-radius: 2em;
+}
+
+.table-view .scroll-bar .track {
+    -fx-background-color: #2B2B2B;
+    -fx-border-color: transparent;
+    -fx-background-radius: 2em;
+}
+
+.table-view .table-row-cell:empty {
+    -fx-background-color: #1e1e1e;
+}
+
+.table-view .table-row-cell:empty .table-cell {
+    -fx-border-width: 0px;
 }
