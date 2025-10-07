@@ -25,3 +25,13 @@ Automate the integration of profile and publication data for the Innovation Cent
 - Makes it easy to audit and trace changes (Git history + documentation).
 
 ---
+
+Search screen
+<img width="1918" height="1027" alt="Image" src="https://github.com/user-attachments/assets/4cf59f1a-0bca-464e-8c4a-df34ee89c921" />
+
+Author detailed screen
+<img width="1918" height="1015" alt="Image" src="https://github.com/user-attachments/assets/8146810a-f110-4fe1-af56-cc3e0700dcc6" />
+
+Saved Articles
+<img width="1917" height="872" alt="Image" src="https://github.com/user-attachments/assets/37d09e7f-1587-42ba-89c8-414e4c6ec2dc" />
+
